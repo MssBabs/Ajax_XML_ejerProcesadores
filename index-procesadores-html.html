@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML HACIA XML CON XHR</title>
+</head>
+<body>
+    <form name="form0">
+        <label>FABRICANTE DEL PROCESADOR</label>             <br>
+        <input type="textbox"  value="">                     <br><br>
+        <input type="button"   id="bton" value="Visualizar"> <br><br><br>
+            
+        <textarea id="modelos" rows="20" cols="30"></textarea>
+    </form>
+
+
+
+    <script>
+        /* VARIABLES */
+        var txtbx;
+        var bton;
+        var modelos;
+        var datosXML;
+        var mns;
+        
+
+
+
+        //1ºOyenteEvento -> Al cargar la pagina obtenemos las variablesHTML:
+        document.addEventListener( 'readystatechange', inicializar, false);
+        //2ºOyenteEvento -> Al cargar la pagina obtenemos los datos del XML:
+        document.addEventListener( 'readystatechange', peticionAJAX, false);
+       
+
+
+
+        /* FUNCIONES */
+        function inicializar() {
+            if (document.readyState == 'complete') {
+                txtbx   = document.forms[0].elements[0];
+                bton    = document.getElementById("bton");
+                modelos = document.getElementById("modelos");
+
+                //3ºOyenteEvento -> Tras Inciar, al hacer click sobre bton lanzamos visualizarInfoXML():
+                bton.addEventListener( 'click', visualizarInfoXML, false);
+            }
+        }
+
+        function peticionAJAX(evento){
+            if(document.readyState == 'complete') {
+                //Obj_XMLHttpRequest:
+                xhr = new XMLHttpRequest();
+                xhr.addEventListener('readystatechange', obtenerInfoXML, false);
+                xhr.open('POST', 'cpus.xml', true);
+                xhr.send(null);
+            }
+        }
+
+        function obtenerInfoXML(evento){
+            //console.log(event.target.readyState); -> == 4   -> Petición finalizada
+            //console.log(event.target.status);     -> == 200 -> Petición correcta
+            if((evento.target.readyState == 4) && (evento.target.status == 200)) {
+                txtbx.disabled = false;
+                bton.disabled  = false;
+
+                //Obtenemos respuesta_servidor ante PeticionXML
+                datosXML = evento.target.responseXML;
+                //console.log(datosXML);
+            }
+        }
+
+        function visualizarInfoXML(){
+            //Obtenemos procesadores del XML
+            let procesadores = datosXML.getElementsByTagName("procesador");
+            
+            mns="";
+            for(let i=0; i<procesadores.length; i++){
+                //Obtenemos fabricante del procesadorXML
+                let aux = procesadores[i].getAttribute("fabricante");
+
+                let auxmns;
+                if(aux == txtbx.value){
+                    //Obtenemos resto de atributos del procesadorXML
+                    let serie      = procesadores[i].getAttribute("serie");
+                    let modelo     = procesadores[i].getAttribute("modelo");
+                    let nucleos    = procesadores[i].getAttribute("nucleos");
+                    let cache      = procesadores[i].getAttribute("cache");
+                    let frecuencia = procesadores[i].getAttribute("frecuencia");
+
+                    auxmns =   "Serie: "   + serie     +
+                                "Modelo: "  + modelo    +
+                                "Nucleos: " + nucleos   +
+                                "Cache: "   + cache     +
+                                "frecuencia"+ frecuencia+ "\n\n";
+                    
+                    mns= mns + auxmns;
+                }
+            }
+
+            if (mns == ""){
+                mns = "No se ha encontrado ese procesador en el XML";
+            }
+
+            
+            modelos.value = mns;
+        }
+    </script>
+</body>
+</html>
